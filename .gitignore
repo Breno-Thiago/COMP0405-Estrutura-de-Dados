@@ -1,0 +1,19 @@
+# Compilados
+*.o
+*.exe
+*.out
+cozinha
+
+# Diretórios de build
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
