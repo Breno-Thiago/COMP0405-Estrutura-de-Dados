@@ -2,91 +2,78 @@
 
 **Projeto Acadêmico — Estrutura de Dados (UFS)**
 
-O **Sistema de Gerenciamento de Cozinha** é uma aplicação completa desenvolvida para simular a operação de uma cozinha industrial ou restaurante. O sistema integra o gerenciamento de um catálogo de insumos, controle de estoque em tempo real, cadastro de receitas complexas e uma fila de processamento de pedidos com suporte a rollback transacional.
-
-O projeto foi construído utilizando a linguagem **C** para o núcleo de processamento (Core) e uma interface moderna baseada em tecnologias web (**HTML, CSS, JavaScript e Node.js**), permitindo uma visualização clara das operações de baixo nível.
+O **Sistema de Gerenciamento de Cozinha** é uma plataforma que simula o fluxo de trabalho de um restaurante industrial, integrando controle de estoque, catálogo de produtos e processamento de pedidos. O diferencial do projeto é a implementação de um motor de processamento em **C** que garante a integridade dos dados através de uma lógica de transações (commit/rollback).
 
 ---
 
-## 🚀 Como Executar
+## 🚀 Como Executar (Guia Rápido)
 
-### Pré-requisitos
-- **GCC** (Compilador C)
-- **Node.js** (v18 ou superior)
+### 1. Requisitos
+- Compilador **GCC** instalado.
+- **Node.js** (versão 18+) para a interface web.
 
-### 1. Compilação
-O projeto utiliza um `Makefile` para automatizar o processo de build. No terminal, execute:
+### 2. Compilação
+Acesse a pasta raiz do projeto no terminal e execute:
 ```bash
+# Se tiver 'make' instalado:
 make
-```
-Isso gerará dois executáveis: `cozinha` (modo terminal) e `cozinha_api` (motor para a web).
 
-### 2. Execução (Interface Web)
-Para rodar a interface gráfica (Dashboard):
+# Ou manualmente (Windows/Linux):
+gcc -Isrc src/api.c src/app_context.c src/core/*.c -o cozinha_api
+gcc -Isrc src/main.c src/app_context.c src/core/*.c src/ui/*.c -o cozinha
+```
+
+### 3. Rodar a Interface Web
 ```bash
 node server.js
 ```
-Acesse no navegador: `http://localhost:3000`
-
-### 3. Modo Terminal (Opcional)
-Para interagir diretamente com o sistema via linha de comando:
-```bash
-./cozinha
-```
+Abra o navegador em: `http://localhost:3000`
 
 ---
 
-## 📚 Estruturas de Dados (Requisitos da Matéria)
+## 📚 Estruturas de Dados Obrigatórias
 
-O projeto implementa rigorosamente todas as estruturas de dados obrigatórias da disciplina, aplicando cada uma no cenário onde sua eficiência é máxima:
+O sistema foi projetado para demonstrar o uso prático de todas as estruturas fundamentais da disciplina:
 
-1.  **Structs (Estruturas de Dados)**:
-    Utilizadas para a modelagem de todas as entidades do sistema (`Ingrediente`, `Receita`, `Pedido`, `NoIngrediente`). As structs permitem agrupar diferentes tipos de dados sob uma única entidade lógica.
-    *Exemplo:* O `NoIngrediente` agrupa o ID, a quantidade e o ponteiro para o próximo nó.
+### 🧩 1. Structs (Modelagem e Ponteiros)
+Toda a lógica é baseada na manipulação de **Structs** para representar as entidades. Utilizamos **Ponteiros** intensamente para navegar entre os nós e para a **Alocação Dinâmica** (`malloc`/`free`), garantindo que o sistema suporte qualquer volume de dados sem desperdício de memória.
+- *Onde:* `NoIngrediente`, `Receita`, `Pedido`, `ItemCatalogo`.
 
-2.  **Array / Vetor Dinâmico**:
-    Utilizado no **Catálogo de Ingredientes** e no **Estoque**. Permite o acesso por índice e o redimensionamento dinâmico da memória conforme novos insumos são cadastrados.
+### 📦 2. Vetores Dinâmicos (Array)
+O **Estoque** e o **Catálogo** são gerenciados por vetores que crescem sob demanda. Isso permite acesso rápido via índice aos ingredientes básicos.
+- *Onde:* Módulos `catalogo.c` e `estoque.c`.
 
-3.  **Ponteiros com Alocação Dinâmica (`malloc`/`free`)**:
-    Essencial para a gestão eficiente de memória. Todos os elementos do sistema (nós de listas, itens da fila, elementos da pilha) são alocados dinamicamente, garantindo que o programa utilize apenas a memória necessária e a libere corretamente após o uso.
+### 🔗 3. Listas Ligadas
+Diferente do catálogo fixo, cada **Receita** possui uma **Lista Encadeada** de ingredientes. Isso foi escolhido porque cada prato tem um número imprevisível de itens, e a lista permite gerenciar esse conjunto de forma flexível.
+- *Onde:* Módulo `ingredientes.c`.
 
-4.  **Lista Encadeada**:
-    Implementada para gerenciar os **Ingredientes de uma Receita**. Como uma receita pode ter um número variável de ingredientes, a lista encadeada permite inserções e remoções dinâmicas sem a necessidade de realocação de grandes blocos de memória.
+### ⏳ 4. Fila (Queue — FIFO)
+O processamento de pedidos segue a regra "Primeiro a Chegar, Primeiro a ser Atendido". Os pedidos feitos pelo site entram em uma fila persistente.
+- *Onde:* Módulo `pedidos.c`.
 
-5.  **Pilha (Stack — LIFO)**:
-    Utilizada para o **Mecanismo de Rollback Transacional**. Ao processar um pedido, cada ingrediente retirado do estoque é empilhado (`PUSH`). Se o processamento falhar por falta de algum insumo posterior, o sistema desempilha (`POP`) os itens e os devolve ao estoque, garantindo a integridade dos dados.
-
-6.  **Fila (Queue — FIFO)**:
-    Gerencia a **Fila de Pedidos**. Garante que as solicitações de pratos sejam processadas rigorosamente na ordem em que foram recebidas (o primeiro pedido a entrar é o primeiro a ser processado).
-
----
-
-## 🛠️ Especificações Técnicas
-
-### Arquitetura do Sistema
-O sistema opera em uma arquitetura de camadas, separando a lógica de estruturas de dados da interface de usuário:
-
-```
-┌──────────┐     HTTP      ┌──────────┐    stdin/stdout    ┌─────────────┐
-│  Browser │ ←──────────→  │ Node.js  │ ←────────────────→ │ cozinha_api │
-│ (HTML/JS)│               │(server.js)│      JSON          │    (C)      │
-└──────────┘               └──────────┘                    └─────────────┘
-```
-
-### Divisão de Módulos
--   `src/core/`: Implementação robusta das estruturas de dados (Lista, Fila, Pilha, Vetor).
--   `src/api.c`: Camada de tradução que comunica o motor em C com o mundo exterior via JSON.
--   `server.js`: Servidor de ponte que gerencia os processos do sistema operacional e a comunicação via WebSockets/HTTP.
+### 🔄 5. Pilha (Stack — LIFO)
+A joia do projeto: o **Rollback Transacional**. Quando um pedido complexo começa a ser processado, cada item retirado do estoque é "empilhado". Se um ingrediente faltar no meio do caminho, o sistema dá um `POP` em tudo e devolve ao estoque, evitando que a cozinha fique com dados inconsistentes.
+- *Onde:* Módulo `rollback.c`.
 
 ---
 
-## 👥 Integrantes
+## ⚙️ Fluxo de Funcionamento (Integração Total)
 
-Grupo de Estrutura de Dados — Universidade Federal de Sergipe (UFS)
+Para entender como as estruturas conversam entre si, veja o caminho de um pedido:
 
--   **HELEN DA SILVA BISPO**
--   **JOÃO VICTOR CARVALHO SIMÕES**
--   **BRENO THIAGO ARGEMIRO SANTOS**
--   **GABRIEL FERREIRA BERNARDO**
--   **CAIO MAGNO BRASIL SANTOS DE CARVALHO LEITE**
--   **LUCAS OLIVEIRA TELES CAVALCANTE**
+1.  **Entrada**: O pedido chega e é inserido na **Fila (FIFO)**.
+2.  **Consulta**: O sistema busca a **Struct** da receita no **Vetor/Array** de receitas.
+3.  **Verificação**: O motor percorre a **Lista Encadeada** de ingredientes daquela receita.
+4.  **Reserva**: Para cada item, usa-se **Ponteiros** para alterar o estoque. Cada sucesso é armazenado na **Pilha (LIFO)**.
+5.  **Finalização**: Se tudo der certo, a pilha é limpa. Se algo faltar, a pilha desempilha e restaura o estoque original.
+
+---
+
+## 👥 Integrantes (Grupo UFS)
+
+- **HELEN DA SILVA BISPO**
+- **JOÃO VICTOR CARVALHO SIMÕES**
+- **BRENO THIAGO ARGEMIRO SANTOS**
+- **GABRIEL FERREIRA BERNARDO**
+- **CAIO MAGNO BRASIL SANTOS DE CARVALHO LEITE**
+- **LUCAS OLIVEIRA TELES CAVALCANTE**

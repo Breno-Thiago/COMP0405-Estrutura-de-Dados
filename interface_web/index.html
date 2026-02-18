@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozinha Pro | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <aside>
+        <div class="logo">🍳 Cozinha <span>Pro</span></div>
+        <nav>
+            <ul>
+                <li class="active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</li>
+                <li data-tab="catalog" onclick="switchTab('catalog')">📦 Catálogo</li>
+                <li data-tab="inventory" onclick="switchTab('inventory')">🏠 Estoque</li>
+                <li data-tab="recipes" onclick="switchTab('recipes')">📖 Receitas</li>
+                <li data-tab="orders" onclick="switchTab('orders')">⏳ Fila de Pedidos</li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <div id="sync-status" class="sync-dot synced"></div>
+            <span id="sync-label">Sincronizado com C</span>
+        </div>
+    </aside>
+
+    <main id="main-content"></main>
+
+    <!-- Modal -->
+    <div id="modal" class="modal" onclick="closeModalOutside(event)">
+        <div class="modal-content" id="modal-body"></div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
