@@ -74,7 +74,6 @@ const emptyRow = (n, icon, msg) => `<tr><td colspan="${n}"><div class="empty-sta
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDashboard() {
-    const low = state.inventory.filter(i => i.quantity < 5).length;
     document.getElementById('main-content').innerHTML = `
         <header class="fade-in"><h1>Dashboard</h1><p>Dados em tempo real do <code>cozinha_api.exe</code></p></header>
         <div class="stats-grid fade-in">
@@ -99,7 +98,7 @@ function renderDashboard() {
                 ✅ <strong>cozinha_api.exe</strong> rodando como processo filho<br>
                 ✅ Comunicação <strong>stdin/stdout</strong><br>
                 ✅ Persistência em <code>data/*.txt</code><br>
-                ${low ? `⚠️ <span style="color:var(--amber)">${low} item(s) com estoque baixo</span>` : '✅ Estoque OK'}
+                ✅ Operações integradas
             </div>
         </div>`;
 }
