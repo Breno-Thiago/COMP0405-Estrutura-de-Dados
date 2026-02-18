@@ -1,0 +1,249 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{amsfonts,amsmath,oldgerm}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+
+% --- THEME AND COLORS ---
+\usetheme{_statale}
+\usefonttheme[onlymath]{serif}
+
+% Cores do VS Code
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstset{
+    language=C,
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\scriptsize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=none,                    
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    frame=single
+}
+
+% --- METADATA ---
+\title{Sistema de Gerenciamento de Cozinha Transacional}
+\subtitle{Estrutura de Dados - UFS}
+\course{Ciência da Computação}
+% Autor curto para o rodapé não estourar
+\author[Grupo 6: Helen, João, Breno, Gabriel, Caio, Lucas]{Helen Bispo, João Simões, Breno Santos, Gabriel Bernardo, Caio Leite, Lucas Cavalcante}
+\IDnumber{2026}
+
+% --- LOGOS ---
+% Redefine logo do topo esquerdo (DCOMP)
+\pgfdeclareimage[height=0.9cm]{logo}{assets/dcomp.png}
+\renewcommand{\@logo}{logo}
+
+% Adiciona logo da UFS no rodapé direito
+\addtobeamertemplate{footline}{}{%
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[anchor=south east, xshift=-0.5cm, yshift=0.2cm] at (current page.south east) {
+            \includegraphics[height=0.8cm]{assets/ufs.png}
+        };
+    \end{tikzpicture}
+}
+
+% Fundo do slide
+\titlebackground*{assets/background}
+
+\begin{document}
+
+\maketitle
+
+\footlinecolor{maincolor}
+
+% --- SLIDE 1: O Que Faz? ---
+\begin{frame}{Definição do Sistema}
+    \begin{columns}
+        \begin{column}{0.6\textwidth}
+            \begin{itemize}
+                \item \textbf{Objetivo:} Gerenciar o fluxo completo de uma cozinha industrial.
+                \item \textbf{Fluxo:} Cadastro de Insumos $\rightarrow$ Montagem de Receitas $\rightarrow$ Controle de Estoque $\rightarrow$ Fila de Pedidos.
+                \item \textbf{Diferencial:} Motor transacional em C.
+                \item \textbf{Garantia:} Integridade total dos dados (Commit/Rollback).
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \begin{alertblock}{Problema Real}
+                Se acabar a farinha no meio de um bolo, o que acontece com os ovos já quebrados?
+                \textbf{Rollback!}
+            \end{alertblock}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% --- SLIDE 2: Mapeamento Técnico (Visual Melhorado) ---
+\begin{frame}{Mapeamento de Estruturas de Dados}
+    \begin{columns}[t]
+        \begin{column}{0.32\textwidth}
+            \begin{block}{Entidades (Structs)}
+                Modelagem de \textbf{Ingredientes}, \textbf{Receitas} e \textbf{Pedidos} com \textit{typedef struct}.
+            \end{block}
+            \begin{block}{Memória (Ponteiros)}
+                Uso de \texttt{malloc} e \texttt{free} para gestão eficiente.
+            \end{block}
+        \end{column}
+        
+        \begin{column}{0.32\textwidth}
+            \begin{block}{Armazenamento (Array)}
+                \textbf{Catálogo} e \textbf{Estoque} usam vetores dinâmicos para acesso rápido ($O(1)$).
+            \end{block}
+            \begin{block}{Composição (Lista)}
+                \textbf{Receitas} são Listas Encadeadas de ingredientes (tamanho variável).
+            \end{block}
+        \end{column}
+        
+        \begin{column}{0.32\textwidth}
+            \begin{block}{Fluxo (Fila FIFO)}
+                \textbf{Pedidos} são processados na ordem de chegada.
+            \end{block}
+            \begin{alertblock}{Segurança (Pilha LIFO)}
+                \textbf{Rollback} usa pilha para desfazer operações falhas.
+            \end{alertblock}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% --- SLIDE 3: Structs e Ponteiros ---
+\begin{frame}[fragile]{Structs e Alocação Dinâmica}
+    A base de tudo. Usamos structs para agrupar dados e ponteiros para conectar nós.
+    \begin{lstlisting}[language=C, title=Exemplo: Nó de Ingrediente (ingredientes.h)]
+typedef struct NoIngrediente {
+    int id_ingrediente;
+    float quantidade;           // Quantidade necessaria
+    struct NoIngrediente* prox; // Ponteiro para o proximo
+} NoIngrediente;
+    \end{lstlisting}
+    \vspace{0.2cm}
+    \textbf{Chave da Implementação:} O uso de \texttt{prox} permite que uma receita tenha infinitos ingredientes sem realocar memória contígua.
+\end{frame}
+
+% --- SLIDE 4: Arrays Dinâmicos ---
+\begin{frame}[fragile]{Arrays Dinâmicos (Estoque)}
+    Para o catálogo e estoque, onde a busca por ID precisa ser rápida.
+    \begin{lstlisting}[language=C, title=Estrutura de Controle (catalogo.h)]
+typedef struct {
+    IngredienteBase *itens; // Array alocado via malloc
+    size_t qtd_atual;
+    size_t capacidade;      // Capacidade total antes do realloc
+} CatalogoIngredientes;
+    \end{lstlisting}
+    \small
+    \textbf{Por que Array?} Acesso direto \texttt{itens[i]} é muito mais rápido que percorrer lista para consultas frequentes.
+\end{frame}
+
+% --- SLIDE 5: Lista Encadeada ---
+\begin{frame}[fragile]{Listas Encadeadas (Receitas)}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \textbf{Cenário:}
+            \begin{itemize}
+                \item Bolo: 5 ingredientes.
+                \item Café: 2 ingredientes.
+                \item Feijoada: 15 ingredientes.
+            \end{itemize}
+            \vspace{0.5cm}
+            \textbf{Solução:} Lista Encadeada permite inserção dinâmica sem desperdício de memória.
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{lstlisting}[language=C, title=Função de Busca na Lista]
+NoIngrediente* ing_buscar(NoIngrediente* cabeca, int id) {
+    NoIngrediente* atual = cabeca;
+    while (atual != NULL) {
+        if (atual->id_ingrediente == id)
+            return atual;
+        atual = atual->prox;
+    }
+    return NULL;
+}
+            \end{lstlisting}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% --- SLIDE 6: Fila FIFO ---
+\begin{frame}[fragile]{Fila de Pedidos (FIFO)}
+    Gerencia a ordem de produção. O primeiro cliente a pedir é o primeiro a ser servido.
+    \begin{lstlisting}[language=C, title=Estrutura da Fila (pedidos.h)]
+typedef struct {
+    NoPedido* inicio; // Onde sai (dequeue)
+    NoPedido* fim;    // Onde entra (enqueue)
+} FilaPedidos;
+    \end{lstlisting}
+    \vspace{0.2cm}
+    \textbf{Lógica:} Novos pedidos entram no `fim`. O processador pega sempre do `inicio`.
+\end{frame}
+
+% --- SLIDE 7: Pilha e Rollback (O Diferencial) ---
+\begin{frame}[fragile]{Pilha e Rollback (LIFO)}
+    A \textbf{Pilha} salva o estado para desfazer operações em caso de erro (falta de estoque).
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{block}{Algoritmo de Rollback}
+                1. Tenta retirar ingrediente.
+                2. Sucesso? \textbf{PUSH} na pilha.
+                3. Falha? \textbf{POP} tudo e devolve.
+            \end{block}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{lstlisting}[language=C, title=Função de Desfazer]
+void rb_desfazer(PilhaRollback* pilha, Estoque* est) {
+    int id; float qtd;
+    while (rb_pop(pilha, &id, &qtd)) {
+        // Devolve ao estoque
+        est_adicionar(est, id, qtd); 
+    }
+}
+            \end{lstlisting}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% --- SLIDE 8: Arquitetura e Interface ---
+\begin{frame}{Arquitetura Híbrida}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item \textbf{C (Core):} Regras de negócio, estruturas e persistência.
+                \item \textbf{Node.js:} Bridge via \textit{stdin/stdout}.
+                \item \textbf{Web:} Interface visual para ver as estruturas "vivas".
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{block}{Fluxo de Dados}
+                Clique no Site $\rightarrow$ JSON $\rightarrow$ Node.js $\rightarrow$ \texttt{./cozinha\_api} $\rightarrow$ Structs/Ponteiros
+            \end{block}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% --- SLIDE FINAL ---
+\begin{frame}[c]
+    \centering
+    \Huge \textbf{Demonstração Prática}
+    
+    \vspace{0.5cm}
+    \Large Vamos ver o \textit{Rollback} visual e o motor em ação!
+    
+    \vspace{2cm}
+    \small \textsl{Obrigado pela atenção! Perguntas?}
+\end{frame}
+
+\end{document}
