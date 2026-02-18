@@ -2,7 +2,11 @@
 
 **Projeto Acadêmico — Estrutura de Dados (UFS)**
 
-O **Sistema de Gerenciamento de Cozinha** é uma plataforma que simula o fluxo de trabalho de um restaurante industrial, integrando controle de estoque, catálogo de produtos e processamento de pedidos. O diferencial do projeto é a implementação de um motor de processamento em **C** que garante a integridade dos dados através de uma lógica de transações (commit/rollback).
+O **Sistema de Gerenciamento de Cozinha** é uma plataforma robusta desenvolvida para simular e gerenciar o fluxo operacional de um restaurante industrial. O projeto destaca-se pela sua arquitetura híbrida:
+
+1.  **Motor de Processamento (Core C)**: Uma API de alto desempenho desenvolvida inteiramente em linguagem C, responsável pelo gerenciamento rigoroso das estruturas de dados e garantia da integridade através de transações com lógica de *commit* e *rollback*.
+2.  **Interface Moderna (Frontend Web)**: Um dashboard interativo construído com HTML5, CSS3 e JavaScript, focado na experiência do usuário e na visualização em tempo real das operações de estoque e pedidos.
+3.  **Comunicação (Bridge Node.js)**: Um servidor de integração que permite a comunicação fluida entre o ambiente Web e o motor de baixo nível em C, traduzindo comandos em alta velocidade.
 
 ---
 
