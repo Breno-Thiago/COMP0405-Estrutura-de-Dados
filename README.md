@@ -125,24 +125,7 @@ node server.js
 
 ---
 
-## 🧪 Dados de Exemplo
 
-O projeto já vem com dados de exemplo na pasta `data/`:
-
-- **10 ingredientes** (Farinha, Ovos, Leite, Açúcar, etc.)
-- **9 itens em estoque** (Chocolate em Pó está sem estoque — ideal para testar rollback!)
-- **3 receitas** (Bolo de Chocolate, Arroz com Feijão, Panqueca Simples)
-- **1 pedido na fila** (Bolo de Chocolate — tente processar para ver o rollback!)
-
-### Cenário de Teste — Rollback
-
-1. Abra o dashboard (`node server.js`)
-2. Vá em **Pedidos** → Processe o pedido do **Bolo de Chocolate**
-3. O sistema vai tentar retirar cada ingrediente (PUSH)
-4. Ao chegar no **Chocolate em Pó** (sem estoque) → **ROLLBACK!**
-5. A modal mostra cada POP devolvendo os ingredientes ao estoque
-
----
 
 ## 👥 Integrantes
 
