@@ -1,139 +1,92 @@
 # 🍳 Sistema de Gerenciamento de Cozinha
 
-**Projeto acadêmico — Estrutura de Dados (UFS)**
+**Projeto Acadêmico — Estrutura de Dados (UFS)**
 
-Sistema completo de gerenciamento de receitas, estoque e pedidos de cozinha, desenvolvido em **C** com interface web (**HTML/CSS/JS + Node.js**).
+O **Sistema de Gerenciamento de Cozinha** é uma aplicação completa desenvolvida para simular a operação de uma cozinha industrial ou restaurante. O sistema integra o gerenciamento de um catálogo de insumos, controle de estoque em tempo real, cadastro de receitas complexas e uma fila de processamento de pedidos com suporte a rollback transacional.
 
----
-
-## 📚 Estruturas de Dados Utilizadas
-
-| Estrutura | Uso no projeto | Módulo |
-|---|---|---|
-| **Lista Ligada** | Ingredientes de cada receita | `ingredientes.c` |
-| **Vetor Dinâmico** | Catálogo de ingredientes e estoque | `catalogo.c`, `estoque.c` |
-| **Fila (FIFO)** | Fila de pedidos (primeiro pedido = primeiro processado) | `pedidos.c` |
-| **Pilha (LIFO)** | Rollback transacional ao processar pedidos | `rollback.c` |
-| **Tabela Hash** *(via busca)* | Busca rápida por ID no catálogo | `catalogo.c` |
-
-### 🔄 Pilha de Rollback — Como funciona
-
-Ao processar um pedido, o sistema **retira ingredientes do estoque** um a um. Cada retirada é empilhada (**PUSH**) na pilha de rollback:
-
-```
-Processando "Bolo de Chocolate":
-  PUSH → Farinha (2kg)    ← retirou do estoque
-  PUSH → Ovos (4un)       ← retirou do estoque
-  PUSH → Leite (500ml)    ← retirou do estoque
-  ✗ Chocolate em Pó → INSUFICIENTE!
-```
-
-Se algum ingrediente faltar, o sistema faz **rollback** — desempilha (**POP**) e devolve tudo ao estoque:
-
-```
-  POP → Leite (500ml)     ← devolveu ao estoque
-  POP → Ovos (4un)        ← devolveu ao estoque
-  POP → Farinha (2kg)     ← devolveu ao estoque
-```
-
-A interface web **visualiza cada operação** PUSH/POP em tempo real com um modal detalhado.
-
----
-
-## 🏗️ Arquitetura
-
-```
-┌──────────┐     HTTP      ┌──────────┐    stdin/stdout    ┌─────────────┐
-│  Browser │ ←──────────→  │ Node.js  │ ←────────────────→ │ cozinha_api │
-│ (HTML/JS)│               │(server.js)│      JSON          │    (C)      │
-└──────────┘               └──────────┘                    └─────────────┘
-                                                                  │
-                                                           ┌──────┴──────┐
-                                                           │  data/*.txt │
-                                                           └─────────────┘
-```
-
-O **core em C** é responsável por toda a lógica de negócio. O Node.js serve como ponte HTTP, encaminhando comandos via `stdin` e recebendo respostas JSON via `stdout`.
-
----
-
-## 📁 Estrutura do Projeto
-
-```
-projeto_cozinha/
-├── src/
-│   ├── core/              # Módulos centrais em C
-│   │   ├── catalogo.c/h   # Vetor dinâmico de ingredientes
-│   │   ├── estoque.c/h    # Gerenciamento de estoque
-│   │   ├── receitas.c/h   # Banco de receitas + lista ligada
-│   │   ├── pedidos.c/h    # Fila FIFO de pedidos
-│   │   ├── rollback.c/h   # Pilha de rollback
-│   │   ├── persistencia.c/h # Persistência em .txt
-│   │   ├── ingredientes.c/h # Lista ligada de ingredientes
-│   │   └── utils.c/h      # Utilitários
-│   ├── ui/
-│   │   └── ui_terminal.c/h # Interface terminal (modo CLI)
-│   ├── api.c              # Camada API (protocolo JSON via stdin/stdout)
-│   ├── main.c             # Ponto de entrada do modo terminal
-│   └── app_context.c/h    # Contexto global da aplicação
-├── interface_web/
-│   ├── index.html         # Página principal
-│   ├── style.css          # Estilos (dark theme)
-│   └── app.js             # Lógica do frontend
-├── data/                  # Dados persistidos
-│   ├── ingredientes.txt   # Catálogo de ingredientes
-│   ├── estoque.txt        # Quantidades em estoque
-│   ├── receitas.txt       # Receitas e seus ingredientes
-│   └── pedidos.txt        # Fila de pedidos
-├── server.js              # Servidor Node.js (ponte HTTP ↔ C)
-├── Makefile               # Build do projeto
-└── README.md
-```
+O projeto foi construído utilizando a linguagem **C** para o núcleo de processamento (Core) e uma interface moderna baseada em tecnologias web (**HTML, CSS, JavaScript e Node.js**), permitindo uma visualização clara das operações de baixo nível.
 
 ---
 
 ## 🚀 Como Executar
 
 ### Pré-requisitos
+- **GCC** (Compilador C)
+- **Node.js** (v18 ou superior)
 
-- **GCC** (MinGW no Windows)
-- **Node.js** (v18+)
-
-### Compilar
-
+### 1. Compilação
+O projeto utiliza um `Makefile` para automatizar o processo de build. No terminal, execute:
 ```bash
-# Compilar ambos (terminal + api)
 make
-
-# Ou compilar manualmente:
-gcc -Isrc src/api.c src/app_context.c src/core/*.c -o cozinha_api
-gcc -Isrc src/main.c src/app_context.c src/core/*.c src/ui/*.c -o cozinha
 ```
+Isso gerará dois executáveis: `cozinha` (modo terminal) e `cozinha_api` (motor para a web).
 
-### Modo Web (Dashboard)
-
+### 2. Execução (Interface Web)
+Para rodar a interface gráfica (Dashboard):
 ```bash
 node server.js
-# Acesse: http://localhost:3000
 ```
+Acesse no navegador: `http://localhost:3000`
 
-### Modo Terminal (CLI)
-
+### 3. Modo Terminal (Opcional)
+Para interagir diretamente com o sistema via linha de comando:
 ```bash
 ./cozinha
 ```
 
 ---
 
+## 📚 Estruturas de Dados (Requisitos da Matéria)
 
+O projeto implementa rigorosamente todas as estruturas de dados obrigatórias da disciplina, aplicando cada uma no cenário onde sua eficiência é máxima:
+
+1.  **Structs (Estruturas de Dados)**:
+    Utilizadas para a modelagem de todas as entidades do sistema (`Ingrediente`, `Receita`, `Pedido`, `NoIngrediente`). As structs permitem agrupar diferentes tipos de dados sob uma única entidade lógica.
+    *Exemplo:* O `NoIngrediente` agrupa o ID, a quantidade e o ponteiro para o próximo nó.
+
+2.  **Array / Vetor Dinâmico**:
+    Utilizado no **Catálogo de Ingredientes** e no **Estoque**. Permite o acesso por índice e o redimensionamento dinâmico da memória conforme novos insumos são cadastrados.
+
+3.  **Ponteiros com Alocação Dinâmica (`malloc`/`free`)**:
+    Essencial para a gestão eficiente de memória. Todos os elementos do sistema (nós de listas, itens da fila, elementos da pilha) são alocados dinamicamente, garantindo que o programa utilize apenas a memória necessária e a libere corretamente após o uso.
+
+4.  **Lista Encadeada**:
+    Implementada para gerenciar os **Ingredientes de uma Receita**. Como uma receita pode ter um número variável de ingredientes, a lista encadeada permite inserções e remoções dinâmicas sem a necessidade de realocação de grandes blocos de memória.
+
+5.  **Pilha (Stack — LIFO)**:
+    Utilizada para o **Mecanismo de Rollback Transacional**. Ao processar um pedido, cada ingrediente retirado do estoque é empilhado (`PUSH`). Se o processamento falhar por falta de algum insumo posterior, o sistema desempilha (`POP`) os itens e os devolve ao estoque, garantindo a integridade dos dados.
+
+6.  **Fila (Queue — FIFO)**:
+    Gerencia a **Fila de Pedidos**. Garante que as solicitações de pratos sejam processadas rigorosamente na ordem em que foram recebidas (o primeiro pedido a entrar é o primeiro a ser processado).
+
+---
+
+## 🛠️ Especificações Técnicas
+
+### Arquitetura do Sistema
+O sistema opera em uma arquitetura de camadas, separando a lógica de estruturas de dados da interface de usuário:
+
+```
+┌──────────┐     HTTP      ┌──────────┐    stdin/stdout    ┌─────────────┐
+│  Browser │ ←──────────→  │ Node.js  │ ←────────────────→ │ cozinha_api │
+│ (HTML/JS)│               │(server.js)│      JSON          │    (C)      │
+└──────────┘               └──────────┘                    └─────────────┘
+```
+
+### Divisão de Módulos
+-   `src/core/`: Implementação robusta das estruturas de dados (Lista, Fila, Pilha, Vetor).
+-   `src/api.c`: Camada de tradução que comunica o motor em C com o mundo exterior via JSON.
+-   `server.js`: Servidor de ponte que gerencia os processos do sistema operacional e a comunicação via WebSockets/HTTP.
+
+---
 
 ## 👥 Integrantes
 
 Grupo de Estrutura de Dados — Universidade Federal de Sergipe (UFS)
 
-- **HELEN DA SILVA BISPO**
-- **JOÃO VICTOR CARVALHO SIMÕES**
-- **BRENO THIAGO ARGEMIRO SANTOS**
-- **GABRIEL FERREIRA BERNARDO**
-- **CAIO MAGNO BRASIL SANTOS DE CARVALHO LEITE**
-- **LUCAS OLIVEIRA TELES CAVALCANTE**
+-   **HELEN DA SILVA BISPO**
+-   **JOÃO VICTOR CARVALHO SIMÕES**
+-   **BRENO THIAGO ARGEMIRO SANTOS**
+-   **GABRIEL FERREIRA BERNARDO**
+-   **CAIO MAGNO BRASIL SANTOS DE CARVALHO LEITE**
+-   **LUCAS OLIVEIRA TELES CAVALCANTE**
