@@ -144,7 +144,13 @@ O projeto já vem com dados de exemplo na pasta `data/`:
 
 ---
 
-## 👤 Autor
+## 👥 Integrantes
 
-**Breno** — Universidade Federal de Sergipe (UFS)  
-Disciplina: Estrutura de Dados
+Grupo de Estrutura de Dados — Universidade Federal de Sergipe (UFS)
+
+- **HELEN DA SILVA BISPO**
+- **JOÃO VICTOR CARVALHO SIMÕES**
+- **BRENO THIAGO ARGEMIRO SANTOS**
+- **GABRIEL FERREIRA BERNARDO**
+- **CAIO MAGNO BRASIL SANTOS DE CARVALHO LEITE**
+- **LUCAS OLIVEIRA TELES CAVALCANTE**
