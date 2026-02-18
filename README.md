@@ -1,56 +1,150 @@
-# Sistema de Gerenciamento de Cozinha Comunitária
+# 🍳 Sistema de Gerenciamento de Cozinha
 
-Projeto da disciplina **Estrutura de Dados I**
+**Projeto acadêmico — Estrutura de Dados (UFS)**
 
-## Sobre
+Sistema completo de gerenciamento de receitas, estoque e pedidos de cozinha, desenvolvido em **C** com interface web (**HTML/CSS/JS + Node.js**).
 
-Sistema de gerenciamento via terminal que controla:
-- **Catálogo global de ingredientes** (array dinâmico) com ID único
-- **Receitas** (array dinâmico) com lista encadeada de ingredientes por ID
-- **Estoque** (array dinâmico) controlado por ID de ingrediente
-- **Fila de pedidos** (FIFO) para simular produção
-- **Processamento transacional** com rollback via pilha (LIFO)
-- **Persistência em TXT**
+---
 
-## Estrutura do Repositório
+## 📚 Estruturas de Dados Utilizadas
+
+| Estrutura | Uso no projeto | Módulo |
+|---|---|---|
+| **Lista Ligada** | Ingredientes de cada receita | `ingredientes.c` |
+| **Vetor Dinâmico** | Catálogo de ingredientes e estoque | `catalogo.c`, `estoque.c` |
+| **Fila (FIFO)** | Fila de pedidos (primeiro pedido = primeiro processado) | `pedidos.c` |
+| **Pilha (LIFO)** | Rollback transacional ao processar pedidos | `rollback.c` |
+| **Tabela Hash** *(via busca)* | Busca rápida por ID no catálogo | `catalogo.c` |
+
+### 🔄 Pilha de Rollback — Como funciona
+
+Ao processar um pedido, o sistema **retira ingredientes do estoque** um a um. Cada retirada é empilhada (**PUSH**) na pilha de rollback:
 
 ```
-/projeto_cozinha
-├── README.md
-├── Makefile
+Processando "Bolo de Chocolate":
+  PUSH → Farinha (2kg)    ← retirou do estoque
+  PUSH → Ovos (4un)       ← retirou do estoque
+  PUSH → Leite (500ml)    ← retirou do estoque
+  ✗ Chocolate em Pó → INSUFICIENTE!
+```
+
+Se algum ingrediente faltar, o sistema faz **rollback** — desempilha (**POP**) e devolve tudo ao estoque:
+
+```
+  POP → Leite (500ml)     ← devolveu ao estoque
+  POP → Ovos (4un)        ← devolveu ao estoque
+  POP → Farinha (2kg)     ← devolveu ao estoque
+```
+
+A interface web **visualiza cada operação** PUSH/POP em tempo real com um modal detalhado.
+
+---
+
+## 🏗️ Arquitetura
+
+```
+┌──────────┐     HTTP      ┌──────────┐    stdin/stdout    ┌─────────────┐
+│  Browser │ ←──────────→  │ Node.js  │ ←────────────────→ │ cozinha_api │
+│ (HTML/JS)│               │(server.js)│      JSON          │    (C)      │
+└──────────┘               └──────────┘                    └─────────────┘
+                                                                  │
+                                                           ┌──────┴──────┐
+                                                           │  data/*.txt │
+                                                           └─────────────┘
+```
+
+O **core em C** é responsável por toda a lógica de negócio. O Node.js serve como ponte HTTP, encaminhando comandos via `stdin` e recebendo respostas JSON via `stdout`.
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+projeto_cozinha/
 ├── src/
-│   ├── main.c
-│   ├── app_context.h / app_context.c
-│   ├── core/
-│   │   ├── utils.h / utils.c
-│   │   ├── catalogo.h / catalogo.c
-│   │   ├── ingredientes.h / ingredientes.c
-│   │   ├── receitas.h / receitas.c
-│   │   ├── estoque.h / estoque.c
-│   │   ├── pedidos.h / pedidos.c
-│   │   ├── rollback.h / rollback.c
-│   │   └── persistencia.h / persistencia.c
-│   └── ui/
-│       └── ui_terminal.h / ui_terminal.c
-└── data/
-    ├── ingredientes.txt
-    ├── receitas.txt
-    ├── estoque.txt
-    └── pedidos.txt
+│   ├── core/              # Módulos centrais em C
+│   │   ├── catalogo.c/h   # Vetor dinâmico de ingredientes
+│   │   ├── estoque.c/h    # Gerenciamento de estoque
+│   │   ├── receitas.c/h   # Banco de receitas + lista ligada
+│   │   ├── pedidos.c/h    # Fila FIFO de pedidos
+│   │   ├── rollback.c/h   # Pilha de rollback
+│   │   ├── persistencia.c/h # Persistência em .txt
+│   │   ├── ingredientes.c/h # Lista ligada de ingredientes
+│   │   └── utils.c/h      # Utilitários
+│   ├── ui/
+│   │   └── ui_terminal.c/h # Interface terminal (modo CLI)
+│   ├── api.c              # Camada API (protocolo JSON via stdin/stdout)
+│   ├── main.c             # Ponto de entrada do modo terminal
+│   └── app_context.c/h    # Contexto global da aplicação
+├── interface_web/
+│   ├── index.html         # Página principal
+│   ├── style.css          # Estilos (dark theme)
+│   └── app.js             # Lógica do frontend
+├── data/                  # Dados persistidos
+│   ├── ingredientes.txt   # Catálogo de ingredientes
+│   ├── estoque.txt        # Quantidades em estoque
+│   ├── receitas.txt       # Receitas e seus ingredientes
+│   └── pedidos.txt        # Fila de pedidos
+├── server.js              # Servidor Node.js (ponte HTTP ↔ C)
+├── Makefile               # Build do projeto
+└── README.md
 ```
 
-## Como compilar
+---
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+
+- **GCC** (MinGW no Windows)
+- **Node.js** (v18+)
+
+### Compilar
 
 ```bash
+# Compilar ambos (terminal + api)
 make
+
+# Ou compilar manualmente:
+gcc -Isrc src/api.c src/app_context.c src/core/*.c -o cozinha_api
+gcc -Isrc src/main.c src/app_context.c src/core/*.c src/ui/*.c -o cozinha
 ```
 
-## Como executar
+### Modo Web (Dashboard)
+
+```bash
+node server.js
+# Acesse: http://localhost:3000
+```
+
+### Modo Terminal (CLI)
 
 ```bash
 ./cozinha
 ```
 
-## Documentação
+---
 
-Consulte o arquivo `main.tex` para o manual técnico completo com todas as interfaces, estruturas e regras do projeto.
+## 🧪 Dados de Exemplo
+
+O projeto já vem com dados de exemplo na pasta `data/`:
+
+- **10 ingredientes** (Farinha, Ovos, Leite, Açúcar, etc.)
+- **9 itens em estoque** (Chocolate em Pó está sem estoque — ideal para testar rollback!)
+- **3 receitas** (Bolo de Chocolate, Arroz com Feijão, Panqueca Simples)
+- **1 pedido na fila** (Bolo de Chocolate — tente processar para ver o rollback!)
+
+### Cenário de Teste — Rollback
+
+1. Abra o dashboard (`node server.js`)
+2. Vá em **Pedidos** → Processe o pedido do **Bolo de Chocolate**
+3. O sistema vai tentar retirar cada ingrediente (PUSH)
+4. Ao chegar no **Chocolate em Pó** (sem estoque) → **ROLLBACK!**
+5. A modal mostra cada POP devolvendo os ingredientes ao estoque
+
+---
+
+## 👤 Autor
+
+**Breno** — Universidade Federal de Sergipe (UFS)  
+Disciplina: Estrutura de Dados

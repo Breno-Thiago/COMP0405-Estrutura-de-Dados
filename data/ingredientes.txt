@@ -1,0 +1,10 @@
+1;Farinha de Trigo;kg
+2;Ovos;un
+3;Leite;ml
+4;Acucar;kg
+5;Manteiga;g
+6;Fermento;g
+7;Chocolate em Po;g
+8;Arroz;kg
+9;Feijao;kg
+10;Sal;g

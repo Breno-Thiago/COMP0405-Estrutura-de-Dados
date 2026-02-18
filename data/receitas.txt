@@ -1,0 +1,17 @@
+[R];1;Bolo de Chocolate;Misture farinha, ovos, leite, acucar e chocolate. Asse a 180C por 40min.
+[I];1;2.00
+[I];2;4.00
+[I];3;500.00
+[I];4;1.50
+[I];5;200.00
+[I];6;10.00
+[I];7;100.00
+[R];2;Arroz com Feijao;Cozinhe o arroz e o feijao separadamente com sal e sirva.
+[I];8;2.00
+[I];9;1.00
+[I];10;15.00
+[R];3;Panqueca Simples;Bata farinha, ovos e leite. Frite em frigideira untada com manteiga.
+[I];1;1.00
+[I];2;2.00
+[I];3;300.00
+[I];5;50.00

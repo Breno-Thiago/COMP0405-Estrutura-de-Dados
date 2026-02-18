@@ -1,7 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -Isrc
 
-SRCS = src/main.c \
+# ── Terminal interativo ────────────────────────────────
+SRCS_TERMINAL = src/main.c \
        src/app_context.c \
        src/core/utils.c \
        src/core/catalogo.c \
@@ -13,18 +14,30 @@ SRCS = src/main.c \
        src/core/persistencia.c \
        src/ui/ui_terminal.c
 
-OBJS = $(SRCS:.c=.o)
-TARGET = cozinha
+# ── API Web (usada pelo server.js) ─────────────────────
+SRCS_API = src/api.c \
+       src/app_context.c \
+       src/core/utils.c \
+       src/core/catalogo.c \
+       src/core/ingredientes.c \
+       src/core/receitas.c \
+       src/core/estoque.c \
+       src/core/pedidos.c \
+       src/core/rollback.c \
+       src/core/persistencia.c
 
-all: $(TARGET)
+TARGET_TERMINAL = cozinha
+TARGET_API = cozinha_api
 
-$(TARGET): $(OBJS)
+all: $(TARGET_TERMINAL) $(TARGET_API)
+
+$(TARGET_TERMINAL): $(SRCS_TERMINAL)
 	$(CC) $(CFLAGS) -o $@ $^
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(TARGET_API): $(SRCS_API)
+	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
-	del /Q src\*.o src\core\*.o src\ui\*.o $(TARGET).exe 2>nul || true
+	del /Q $(TARGET_TERMINAL).exe $(TARGET_API).exe 2>nul || true
 
 .PHONY: all clean
