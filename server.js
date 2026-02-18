@@ -13,7 +13,10 @@ const { spawn } = require('child_process');
 
 const PORT = 3000;
 const WEB_DIR = path.join(__dirname, 'interface_web');
-const API_EXE = path.join(__dirname, 'cozinha_api.exe');
+
+// Detecta o executável correto dependendo do SO (.exe apenas no Windows)
+const IS_WINDOWS = process.platform === 'win32';
+const API_EXE = path.join(__dirname, IS_WINDOWS ? 'cozinha_api.exe' : 'cozinha_api');
 
 // ─── Spawn do processo C ──────────────────────────────────────────────────────
 let cProcess = null;
@@ -59,7 +62,7 @@ function startCProcess() {
         setTimeout(startCProcess, 500);
     });
 
-    console.log('[C process] cozinha_api.exe iniciado.');
+    console.log(`[C process] ${path.basename(API_EXE)} iniciado.`);
 }
 
 // ─── Fila serializada de comandos ─────────────────────────────────────────────
